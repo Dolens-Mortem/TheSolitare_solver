@@ -70,7 +70,7 @@ def f_opener(temp_dict = None):
         data = "В игре" if in_home == 'false' else "Не в игре"
 
         in_deck = "В колоде" if num > 27 else "Нет"
-        card_dict[num] = [value_num, suit_num, state, in_deck, temp_dict[num][4] if temp_dict else data]
+        card_dict[num] = [value_num, suit_num, state, in_deck, temp_dict[num][4] if temp_dict else data, temp_dict[num][5] if temp_dict else "Без пары"]
         if card_dict[num][4] == "Не в игре":
             print(card_dict[num])
         #print(f"{value_text} {suit_text} | {state} {in_deck}")
@@ -101,18 +101,20 @@ def f_solver():
             print(f"first - {first} : second - {second}")
             formula = first - second == 1
             #print(formula)
-            if formula and (open_card_dict[k_first][1] + open_card_dict[k_second][1]) % 2 != 0 and open_card_dict[k_second][4] == "В игре":
+            if formula and (open_card_dict[k_first][1] + open_card_dict[k_second][1]) % 2 != 0 and open_card_dict[k_second][4] == "В игре" and open_card_dict[k_first][5] == "Без пары":
                 try:
                     print(card_dict[k_second])
                     card_btn = driver.find_element(By.XPATH, f'/html/body/main/div[1]/div[1]/div/div/div[{k_second + 15}]')
                     time.sleep(1)
                     click_card_top(card_btn)
                     card_dict[k_second][4] = "Не в игре"
+                    card_dict[k_first][5] = "С парой"
                 except Exception as e:
                     print(k_second)
                     print(e)
                 print('clicked')
-                print(card_dict[k_second])
+                print(f"first - {card_dict[k_first]}")
+                print(f"second - {card_dict[k_second]}")
                 f_solver()
                 return
     print("Ходов не осталось.")

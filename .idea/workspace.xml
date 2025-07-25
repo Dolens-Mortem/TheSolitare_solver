@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af3d5799-8f20-44a4-aeb5-6a60984aa084" name="Changes" comment="Программа отслеживает карты на странице">
+    <list default="true" id="af3d5799-8f20-44a4-aeb5-6a60984aa084" name="Changes" comment="Программа перемещает все возможные комбинации без использования колоды">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -85,11 +85,20 @@
       <option name="project" value="LOCAL" />
       <updated>1753386543345</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Программа перемещает все возможные комбинации без использования колоды">
+      <option name="closed" value="true" />
+      <created>1753475781477</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1753475781477</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Программа отслеживает карты на странице" />
-    <option name="LAST_COMMIT_MESSAGE" value="Программа отслеживает карты на странице" />
+    <MESSAGE value="Программа перемещает все возможные комбинации без использования колоды" />
+    <option name="LAST_COMMIT_MESSAGE" value="Программа перемещает все возможные комбинации без использования колоды" />
   </component>
 </project>
