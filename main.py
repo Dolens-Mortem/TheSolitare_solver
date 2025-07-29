@@ -14,13 +14,16 @@ driver.get(url)
 # Загрузка
 time.sleep(5)
 
+temp_card_dict = {}
+# Карты, которыми нет смысла ходить
+already_moved = {}
 # Словарь с картами
 card_dict = {}
 # Открытые карты
 open_card_dict = {}
 # Вышедшие карты из игры
 out_card_dict = {
-    "0": -1,    #"♥️ Червы"
+    "0": -1,    #"♥️ Черви"
     "1": -1,    #"♠️ Пики"
     "2": -1,    #"♦️ Бубны"
     "3": -1,    #"♣️ Крести"
@@ -28,7 +31,7 @@ out_card_dict = {
 
 # Масти
 suits = {
-    "0": "♥️ Червы",
+    "0": "♥️ Черви",
     "1": "♠️ Пики",
     "2": "♦️ Бубны",
     "3": "♣️ Крести"
@@ -44,7 +47,6 @@ values = {
 
 time.sleep(3)
 
-print("все")
 
 # Функция для клика в нужном месте
 def f_click_card_top(btn):
@@ -54,6 +56,7 @@ def f_click_card_top(btn):
     actions.move_to_element(btn).move_by_offset(0, offset_y).click().perform()
 
 def f_open_deck():
+    global card_dict
     try:
         deck_btn = driver.find_element(By.XPATH, '/html/body/main/div[1]/div[1]/div/div/div[1]')
         deck_btn.click()
@@ -63,104 +66,109 @@ def f_open_deck():
         return False
 
 # Сканирует колоду и открытые карты
-def f_opener(temp_dict = None):
-    global open_card_dict, out_card_dict
-    open_card_dict.clear()
-    cards = driver.find_elements(By.CSS_SELECTOR, "div[data-component-type='card']")
-    placeholders = driver.find_elements(By.CSS_SELECTOR, "div[class='styles_component__zVpk3 isOpen']")
-    #print(f"Найдено карт: {len(cards)}")
+def f_opener():
+    global open_card_dict, out_card_dict, card_dict, already_moved, temp_card_dict
+    temp_card_dict = card_dict.copy()
+    while True:
+        moved = False
+        open_card_dict.clear()
+        card_dict.clear()
+        cards = driver.find_elements(By.CSS_SELECTOR, "div[data-component-type='card']")
+        placeholders = driver.find_elements(By.CSS_SELECTOR, "div[class='styles_component__zVpk3 isOpen']")
+        placeholders_len = len(placeholders)
+        #print(f"Найдено карт: {len(cards)}")
 
-    # Вывод в консоли (масть, значение, открыта или закрыта)
-    for num, card in enumerate(cards):
-        suit = card.get_attribute("data-suit")
-        value = card.get_attribute("data-value")
-        is_open = card.get_attribute("data-is-moveable")
-        in_home = card.get_attribute("data-is-home")
-        has_child = card.get_attribute("data-has-child")
+        # Вывод в консоли (масть, значение, открыта или закрыта)
+        for num, card in enumerate(cards):
+            suit = card.get_attribute("data-suit")
+            value = card.get_attribute("data-value")
+            is_open = card.get_attribute("data-is-moveable")
+            in_home = card.get_attribute("data-is-home")
+            has_child = card.get_attribute("data-has-child")
 
-        #value_text = values.get(value, int(value) + 1)
-        value_num = int(value)
-        #suit_text = suits.get(suit, f"Unknown({suit})")
-        suit_num = int(suit)
-        state = "Закрыта" if is_open == 'false' else "Открыта"
-        data = "В игре" if in_home == 'false' else "Не в игре"
-        child = "Без пары" if has_child == 'false' else "С парой"
+            value_num = int(value)
+            suit_num = int(suit)
+            state = "Закрыта" if is_open == 'false' else "Открыта"
+            data = "В игре" if in_home == 'false' else "Не в игре"
+            child = "Без пары" if has_child == 'false' else "С парой"
 
-        in_deck = "В колоде" if num > 27 else "Нет"
-        card_dict[num] = [value_num, suit_num, state, in_deck, temp_dict[num][4] if temp_dict else data, child]
-        '''if card_dict[num][4] == "Не в игре":
-            print(card_dict[num])'''
-        #print(f"{value_text} {suit_text} | {state} {in_deck}")
+            in_deck = "В колоде" if num > 27 else "Нет"
+            deck_status = temp_card_dict[num][3] if temp_card_dict and num in temp_card_dict else in_deck
+            card_dict[num] = [value_num, suit_num, state, deck_status, data, child]
 
-    #print(card_dict)
-    #time.sleep(1)
-    for k, v in card_dict.items():
-        if card_dict[k][2] == "Открыта" and card_dict[k][4] == "В игре":
-            open_card_dict[k] = v
-            #print(open_card_dict)
-            s = str(open_card_dict[k][1])
-            print(s)
-            # Чтобы карты могли 'выйти из игры'
-            home_diff = (abs(out_card_dict[s] - open_card_dict[k][0]) == 1) and (open_card_dict[k][5] == "Без пары" and open_card_dict[k][4] == "В игре" and open_card_dict[k][2] == "Открыта")
-            # Условие, убирающее короля на пустую клетку
-            if (placeholders and open_card_dict[k][0] == 12) or home_diff:
+            if card_dict[num][2] == "Открыта" and card_dict[num][4] == "В игре":
+                open_card_dict[num] = card_dict[num]
+                print(open_card_dict)
+
+
+        for k, v in open_card_dict.items():
+            if open_card_dict[k][2] == "Открыта" and open_card_dict[k][4] == "В игре":
+                s = str(open_card_dict[k][1])
+                val_second, suit_second = v[0], v[1]
+                pair_second = (val_second, suit_second)
+
+                # Чтобы карты могли 'выйти из игры'
+                home_diff = (abs(out_card_dict[s] - open_card_dict[k][0]) == 1) and (open_card_dict[k][5] == "Без пары" and open_card_dict[k][4] == "В игре" and open_card_dict[k][2] == "Открыта")
                 if home_diff:
-                    out_card_dict[s] = open_card_dict[k][1]
-                    print(f"КАРТА ВЫШЛА ИЗ ИГРЫ: {open_card_dict[k]}")
-                card_btn = driver.find_element(By.XPATH, f'/html/body/main/div[1]/div[1]/div/div/div[{int(k) + 15}]')
-                f_click_card_top(card_btn)
-                card_dict[k][4] = "Не в игре"
-                f_opener(card_dict)
-                return
-        '''if card_dict[k][0] == 0 and card_dict[k][2] == "Открыта" and card_dict[k][4] == "В игре":
-            card_btn = driver.find_element(By.XPATH,f'/html/body/main/div[1]/div[1]/div/div/div[{int(k) + 15}]')
-            f_click_card_top(card_btn)
-            card_dict[k][4] = "Не в игре"
-            f_opener(card_dict)
-            return'''
-    #time.sleep(0.3)
-    #print(open_card_dict)
+                    out_card_dict[s] = open_card_dict[k][0]
+                    card_btn = driver.find_element(By.XPATH, f'/html/body/main/div[1]/div[1]/div/div/div[{int(k) + 15}]')
+                    f_click_card_top(card_btn)
+                    already_moved[k] = False
+                    moved = True
+
+                # Условие, убирающее короля на пустую клетку
+                if placeholders_len != 0 and open_card_dict[k][0] == 12:
+                    if already_moved.get(pair_second) is False:
+                        continue
+                    card_btn = driver.find_element(By.XPATH, f'/html/body/main/div[1]/div[1]/div/div/div[{int(k) + 15}]')
+                    f_click_card_top(card_btn)
+                    already_moved[pair_second] = False
+                    moved = True
+                    placeholders_len -= 1
+                    if card_dict[k][3] == "В колоде":
+                        card_dict[k][3] = open_card_dict[k][3] = "Нет"
+        if not moved:
+            break
 
 # Основная поисковая функция
 def f_solver():
-    f_opener(card_dict)
-    for k_first, v_first in open_card_dict.items():
-        for k_second, v_second in open_card_dict.items():
-            if k_first == k_second:
-                continue
-            first = open_card_dict[k_first][0]
-            second = open_card_dict[k_second][0]
-            #print(f"first - {first} : second - {second}")
-            formula = first - second == 1
-            #print(formula)
-            if formula and (open_card_dict[k_first][1] + open_card_dict[k_second][1]) % 2 != 0 and open_card_dict[k_second][4] == "В игре" and open_card_dict[k_first][5] == "Без пары" and open_card_dict[k_first][3] != "В колоде":
-                if open_card_dict[k_second][3] == "В колоде":
-                    open_card_dict[k_second][3] = "Нет"
-                try:
-                    #print(card_dict[k_second])
-                    card_btn = driver.find_element(By.XPATH, f'/html/body/main/div[1]/div[1]/div/div/div[{k_second + 15}]')
-                    #time.sleep(0.3)
-                    f_click_card_top(card_btn)
-                    card_dict[k_second][4] = "Не в игре"
-                except Exception as e:
-                    print(k_second)
-                    print(e)
-                print(f"first close - {card_dict[k_first]}")
-                print(f"first open - {open_card_dict[k_first]}")
-                print(f"second close - {card_dict[k_second]}")
-                print(f"second open - {open_card_dict[k_second]}")
-                print(open_card_dict)
-                print('clicked')
-                #print(f"СЛОВАРЬ - {open_card_dict}")
-                f_solver()
-                return
-    print("Ходов не осталось. Открываю колоду.")
+    while True:
+        moved = False
+        global card_dict, open_card_dict
+        f_opener()
+        for k_first, v_first in open_card_dict.items():
+            val_first, suit_first = v_first[0], v_first[1]
+            for k_second, v_second in open_card_dict.items():
+                if k_first == k_second:
+                    continue
+
+                val_second, suit_second = v_second[0], v_second[1]
+                pair_second = (val_second, suit_second)
+
+                formula = (val_first - val_second == 1) and (open_card_dict[k_first][1] + open_card_dict[k_second][1]) % 2 != 0 and open_card_dict[k_second][4] == "В игре" and open_card_dict[k_first][5] == "Без пары" and open_card_dict[k_first][3] != "В колоде"
+                if formula:
+                    if already_moved.get(pair_second) is False:
+                        continue
+                    if card_dict[k_second][3] == "В колоде":
+                        card_dict[k_second][3] = open_card_dict[k_second][3] = "Нет"
+                    try:
+                        card_btn = driver.find_element(By.XPATH, f'/html/body/main/div[1]/div[1]/div/div/div[{k_second + 15}]')
+                        f_click_card_top(card_btn)
+                        already_moved[pair_second] = False
+                        card_dict[k_second][4] = "Не в игре"
+                    except Exception as e:
+                        print(k_second)
+                        print(e)
+                    moved = True
+        if not moved:
+            print("Ходов не осталось. Открываю колоду.")
+            break
+
 
 def main():
     f_opener()
     while True:
         f_solver()
-        f_open_deck()
         if not f_open_deck():
             print('Остановка программы')
             time.sleep(999999)

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af3d5799-8f20-44a4-aeb5-6a60984aa084" name="Changes" comment="Теперь скрипт видит, какая карта с парой, а какая - нет">
+    <list default="true" id="af3d5799-8f20-44a4-aeb5-6a60984aa084" name="Changes" comment="Улучшил программу">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -44,14 +44,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.main.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -108,13 +108,52 @@
       <option name="project" value="LOCAL" />
       <updated>1753476651182</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Улучшил программу">
+      <option name="closed" value="true" />
+      <created>1753542202429</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1753542202429</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Программа отслеживает карты на странице" />
     <MESSAGE value="Программа перемещает все возможные комбинации без использования колоды" />
     <MESSAGE value="Теперь скрипт видит, какая карта с парой, а какая - нет" />
-    <option name="LAST_COMMIT_MESSAGE" value="Теперь скрипт видит, какая карта с парой, а какая - нет" />
+    <MESSAGE value="Улучшил программу" />
+    <option name="LAST_COMMIT_MESSAGE" value="Улучшил программу" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>76</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="home_diff" language="Python" />
+        <watch expression="abs(out_card_dict[s] - open_card_dict[k][0]) == 1" language="Python" />
+        <watch expression="open_card_dict[k][5] == &quot;Без пары&quot; and open_card_dict[k][4] == &quot;В игре&quot;" language="Python" />
+        <watch expression="open_card_dict[k][2] == &quot;Открыта&quot;" language="Python" />
+        <watch expression="(open_card_dict[k][5] == &quot;Без пары&quot; and open_card_dict[k][4] == &quot;В игре&quot; and open_card_dict[k][2] == &quot;Открыта&quot;)" language="Python" />
+        <watch expression="(abs(out_card_dict[s] - open_card_dict[k][0]) == 1) and (open_card_dict[k][5] == &quot;Без пары&quot; and open_card_dict[k][4] == &quot;В игре&quot; and open_card_dict[k][2] == &quot;Открыта&quot;)" language="Python" />
+        <watch expression="first - sec == 1" language="Python" />
+        <watch expression="(open_card_dict[k_first][1] + open_card_dict[k_second][1]) % 2 != 0" language="Python" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>
