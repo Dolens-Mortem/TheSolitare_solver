@@ -14,7 +14,6 @@ driver.get(url)
 # Загрузка
 time.sleep(5)
 
-temp_card_dict = {}
 # Карты, которыми нет смысла ходить
 already_moved = {}
 # Словарь с картами
@@ -45,13 +44,17 @@ values = {
     "12": "K"
 }
 
+strikes = 0
+deck_len = 1
+level_of_searching = 0
+
 time.sleep(3)
 
 
 # Функция для клика в нужном месте
 def f_click_card_top(btn):
     size = btn.size
-    offset_y = -size['height'] // 3  # клик в верхнюю треть
+    offset_y = -size['height'] // 2.5  # клик в верхнюю треть 3
     actions = ActionChains(driver)
     actions.move_to_element(btn).move_by_offset(0, offset_y).click().perform()
 
@@ -67,8 +70,9 @@ def f_open_deck():
 
 # Сканирует колоду и открытые карты
 def f_opener():
-    global open_card_dict, out_card_dict, card_dict, already_moved, temp_card_dict
+    global open_card_dict, out_card_dict, card_dict, already_moved, deck_len
     temp_card_dict = card_dict.copy()
+    deck_len = 0
     while True:
         moved = False
         open_card_dict.clear()
@@ -95,6 +99,9 @@ def f_opener():
             in_deck = "В колоде" if num > 27 else "Нет"
             deck_status = temp_card_dict[num][3] if temp_card_dict and num in temp_card_dict else in_deck
             card_dict[num] = [value_num, suit_num, state, deck_status, data, child]
+
+            if deck_status == "В колоде":
+                deck_len += 1
 
             if card_dict[num][2] == "Открыта" and card_dict[num][4] == "В игре":
                 open_card_dict[num] = card_dict[num]
@@ -125,16 +132,33 @@ def f_opener():
                     already_moved[pair_second] = False
                     moved = True
                     placeholders_len -= 1
-                    if card_dict[k][3] == "В колоде":
+                    if card_dict[k][3] == "В колоде" or open_card_dict[k][3] == "В колоде":
                         card_dict[k][3] = open_card_dict[k][3] = "Нет"
+                        temp_card_dict = card_dict.copy()
         if not moved:
             break
+
+def intelligent_analysis(card_key, card_value):
+    for k, v in open_card_dict.items():
+        if card_key == k:
+            continue
+        if card_value[0] == 1:
+            break
+        if level_of_searching == 1:
+            return True
+        if out_card_dict[str(card_value[1])] == -1:
+            break
+        intel_formula = (card_value[0] - v[0] == 1) and (open_card_dict[card_key][1] + open_card_dict[k][1]) % 2 != 0 and open_card_dict[k][4] == "В игре"
+        if intel_formula:
+            return True
+    return False
+
 
 # Основная поисковая функция
 def f_solver():
     while True:
         moved = False
-        global card_dict, open_card_dict
+        global card_dict, open_card_dict, strikes
         f_opener()
         for k_first, v_first in open_card_dict.items():
             val_first, suit_first = v_first[0], v_first[1]
@@ -149,30 +173,74 @@ def f_solver():
                 if formula:
                     if already_moved.get(pair_second) is False:
                         continue
-                    if card_dict[k_second][3] == "В колоде":
+                    if card_dict[k_second][3] == "В колоде" or open_card_dict[k_second][3] == "В колоде":
+                        if not intelligent_analysis(k_second, open_card_dict[k_second]):
+                            print('no')
+                            continue
                         card_dict[k_second][3] = open_card_dict[k_second][3] = "Нет"
                     try:
                         card_btn = driver.find_element(By.XPATH, f'/html/body/main/div[1]/div[1]/div/div/div[{k_second + 15}]')
                         f_click_card_top(card_btn)
                         already_moved[pair_second] = False
                         card_dict[k_second][4] = "Не в игре"
+                        open_card_dict[k_first][5] = "С парой"
                     except Exception as e:
                         print(k_second)
                         print(e)
                     moved = True
+                    strikes = 0
         if not moved:
+            strikes += 1
             print("Ходов не осталось. Открываю колоду.")
             break
 
+def f_solver_endgame():
+    global card_dict, open_card_dict, out_card_dict, already_moved
+
+    for suit, last_out_val in out_card_dict.items():
+        target_val = last_out_val + 1
+        if target_val > 12:
+            continue
+
+        for key, value_open in card_dict.items():
+            val, s, state, *_ = value_open
+            if val == target_val and str(s) == suit and value_open[4] == "В игре":
+                if value_open[2] == "Открыта":
+                    if value_open[5] == "С парой":
+                        print(f"{values.get(str(val), val)} {suits[suit]} заблокирована картой снизу")
+                        for key2, value_open2 in open_card_dict.items():
+                            if value_open2[0] == val + 1 and value_open2[1] % 2 != s % 2:
+                                try:
+                                    card_btn = driver.find_element(By.XPATH, f'/html/body/main/div[1]/div[1]/div/div/div[{key2 + 15}]')
+                                    f_click_card_top(card_btn)
+                                    already_moved[(value_open2[0], value_open2[1])] = False
+                                    time.sleep(1)
+                                except Exception as e:
+                                    print("Ошибка при клике на карту:", e)
+                else:
+                    print(f"{values.get(str(val), val)} {suits[suit]} закрыта — нельзя освободить")
+
+
 
 def main():
+    global strikes, level_of_searching
     f_opener()
     while True:
-        f_solver()
-        if not f_open_deck():
-            print('Остановка программы')
-            time.sleep(999999)
-            break
+        '''if strikes >= deck_len * 2:
+            f_solver_endgame()
+            strikes = 0
+        else:'''
+        for i in range(deck_len):
+            f_solver()
+            bool_deck = f_open_deck()
+            if not bool_deck:
+                print('Остановка программы')
+                time.sleep(999999)
+                break
+        if strikes >= deck_len:
+            level_of_searching = 1
+        else:
+            level_of_searching = 0
 main()
 
 
